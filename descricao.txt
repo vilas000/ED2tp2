@@ -1,0 +1,41 @@
+1. Intercalação balanceada de vários caminhos (2f fitas) utilizando, na etapa de geração dos blocos 
+ordenados, |qualquer método de ordenação interna| apresentado em "Estrutura de Dados I". 
+
+-> Deve ser considerada a existencia de 
+    -  memória interna disponível para armazenar um vetor de, no máximo, 20 registros
+    -  40 fitas de armazenamento externo, sendo 20 fitas de entrada e 20 fitas de saída a cada etapa de intercalação.
+
+2. Intercalação balanceada de vários caminhos (2f fitas) utilizando, na etapa de geração dos blocos 
+ordenados, a |técnica de seleção por substituição| apresentada em "Estrutura de Dados II". 
+
+-> Deve ser considerada a existencia de 
+    -  memória interna disponível para armazenar um vetor de, no máximo, 20 registros
+    -  40 fitas de armazenamento externo, sendo 20 fitas de entrada e 20 fitas de saída a cada etapa de intercalação.
+
+3. Quicksort externo. 
+
+-> Deve ser considerada a existencia de 
+    -  memória interna disponível para armazenar um vetor de, no máximo, 20 registros
+
+---------------------------------------------------------------
+-- REALIZAR A ORDENAÇÃO DO ARQUIVO PROVAO.TXT
+
+O arquivo PROVAO.TXT possui 471.705 linhas, cada uma com 1 registro de 1 aluno, portanto, 471.705 registros totais
+
+Cada registro possui: 
+    - Numéro de inscrição (long)                        (coluna 1 a 8)
+    - Nota do aluno       (valor real entre 0.0 e 100.0)(coluna 10 a 14)
+    - Estado do aluno     (cadeia de 2 caracteres)      (coluna 16 e 17)
+    - Cidade do aluno     (cadeia de 50 caracteres)     (coluna 19 e 68)
+    - Curso do aluno      (cadeia de 30 caracteres)     (coluna 70 e 99)
+
+EXEMPLO:
+00085344 031.8 MT PRIMAVERA DO LESTE                                 ADMINISTRACAO                 
+
+Existe uma coluna entre cada um dos dados, afim de fazer separação.
+
+No caso, devem ser ordenadas ascendentemente as n primeiras linhas do arquivo texto
+"PROVAO.TXT", por meio das notas obtidas pelos alunos, considerando n igual a 100, 1.000, 10.000,
+100.000 e 471.705. Ademais, distintas situações de ordem inicial do arquivo devem ser consideradas:
+arquivo ordenado ascendentemente, arquivo ordenado descendentemente e arquivo desordenado
+aleatoriamente. 
