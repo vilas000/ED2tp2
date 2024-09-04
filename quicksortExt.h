@@ -11,8 +11,9 @@ typedef struct{
     char curso[31];
 }Registro;
 
-#define QUANT_REGISTROS 100
-#define TAM_AREA 20
+#define QUANT_REGISTROS QUANT_TOTAL
+#define QUANT_TOTAL 471705
+#define TAM_AREA 220
 
 typedef struct{
     Registro* reg;
@@ -35,5 +36,5 @@ void retiraMin(TipoArea *area, Registro *R, int *numArea);
 void particao(FILE **arqLinf, FILE **arqEinf, FILE **arqLESup,
               TipoArea area, int esq, int dir, int *i, int *j);
 int obterNumCelOcupadas(TipoArea area);
-
+void retiraPrimeiro(TipoArea *area, Registro *R);
 #endif 
