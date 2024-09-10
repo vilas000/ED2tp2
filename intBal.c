@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+#include <limits.h>
 #include <math.h>
 #include "intBal.h"
 
@@ -66,30 +68,78 @@ int main(int argc, char *argv[]){
     for(int i = 0; i < f; i++){
         rewind(fitas[i]);
     }
+
     //FITAS DE SAIDA
+    bool entrada = true;
 
     // ddasds dsadsadsa dsadsa rerwwerrew
     // dsdas dsadsadas dsadsa  dsffdsfds
     // dsadas dsadasdsa sdadsa
-    // 11 / 3 = 4
-    i = f + 1;
-    quantBlocosSuc = ceil((float)contaBlocosUtilizados / f); 
-    for(int j = 0; j < quantBlocosSuc; j++){
-        //passar todos os primeiros elementos de cada bloco para "interna"
-        for(int k = 1; k <= f; k++){
-            if(fread(interna, sizeof(Registro), 1, fitas[k]))
-                interna[k].fita = k;
-        }
-        
-        //fazer o heap
-        //mandar o menor elemento pra fita de saida
-        //insere mais um no heap, da fita do qual o que saiu era
-        //refaz o heap
 
+    // ddasdsdsdasdsadas rerwwerrewdsffdsfds
+    // dsadsadsadsadsadasdsadasdsa 
+    // dsadsadsadsasdadsa
+    // 11 / 3 = 4
+
+    // i = f + 1;
+    int inicio, fim, blocosUltColuna;
+    while (contaBlocosUtilizados != 1){
+
+        quantBlocosSuc = ceil((float)contaBlocosUtilizados / f); 
+        blocosUltColuna = contaBlocosUtilizados % f;
+
+        contaBlocosUtilizados = 0;
+        if(entrada){
+            inicio = 1; fim = f;} 
+                else{
+            inicio = f + 1; fim = f2;}
+
+            bool heapFeito = false;
+            int* quantLidos = (int*)calloc(f, sizeof(int));
+            int contUtilizadas = 0;
+
+        //cada coluna que forma um novo bloco
+        for(int j = 0; j < quantBlocosSuc; j++){
+
+            if(j = quantBlocosSuc - 1 && blocosUltColuna != 0) 
+                if(entrada) fim = blocosUltColuna;
+                else fim = blocosUltColuna + f;
+            
+                //passar todos os primeiros elementos de cada bloco para "interna"
+            for(int k = inicio; k <= fim; k++){
+                if(fread(interna, sizeof(Registro), 1, fitas[k]))
+                    interna[k].fita = k;
+            }
+
+            while (contUtilizadas <= f){
+                //fazer o heap
+                if(!heapFeito){
+                    makeHeap(interna);
+                    heapFeito = true;
+                }
+                
+                Registro menor = interna[0];
+                
+                //mandar o menor elemento pra fita de saida
+                fwrite(&menor, sizeof(Registro), 1, fitas[i]);
+
+                //insere mais um no heap, da fita do qual o que saiu era
+                if(quantLidos[menor.fita] > f)
+                    fread(&interna[0], sizeof(Registro), 1, fitas[menor.fita]);
+                else {
+                    interna[0].nota = INT_MAX;
+                    contUtilizadas++;
+                }
+
+                //refaz o heap
+                heapify(interna);
+            }
+            contaBlocosUtilizados++; entrada = !entrada;
+        }
     }
 
-
-
+    if(entrada) {} //arquivo esta ordenado na fita[1]
+    else{} //else arquivo esta ordenado na fita[f + 1]
 
 }
 
