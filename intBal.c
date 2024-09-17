@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <limits.h>
 #include <math.h>
+#include <float.h>
 #include "intBal.h"
 
 //nome fitas: fita1 fita2 ...
@@ -139,7 +140,9 @@ void criaRuns(FILE* arqBin, int *numBlocos){
 
     //FITAS DE ENTRADA
     //gerando os blocos ordenados dentro das fitas de entrada
-    while(fread(&R, sizeof(Registro), 1, arqBin) == 1){
+    for(int j = 0; j < 400; j++){
+
+        fread(&R, sizeof(Registro), 1, arqBin);
 
         interna[contRegistros++] = R;
 
@@ -212,16 +215,16 @@ void intercalacaoBalanceada(int numBlocos){
         return;
     }
 
-
-    //NESSE PONTO O VETOR INTERNO ESTA COM O MENOR ELEMENTO DE CADA RUN DOS PRIMEIROS BLOCOS
+    //NESSE PONTO O VETOR INTERNO ESTA COM O MENOR ELEMENTO DE CADA RUN DOS PRIMEIROS BLOCOS HAHAHAHAHAHHAHAHAHAHAHAHA
 
     int colunasTotais = ceil((float)numBlocos / f);
     int limiteBloco = f;
     int j;
+    bool trocaFita = true;
 
     printf("chega ate a funcao que eu quero");
 
-    while(numBlocos != 1){
+    while(numBlocos > 1){
 
         printf("\nNum blocos: %d\n", numBlocos);
 
@@ -229,20 +232,18 @@ void intercalacaoBalanceada(int numBlocos){
         for(i = 1; i <= colunasTotais; i++){
 
             // Vetor para armazenar o próximo elemento de cada fita
-            Registro menores[f];
-            int ativos[f]; 
-             // Indica se ainda há registros para ler de cada fita
-            int contadores[f]; //Conta quantos elementos de um bloco ja foram lidos
+            Registro* menores = (Registro*)calloc(f, sizeof(Registro));
+            int* ativos = (int*)malloc(f * sizeof(int));          // Indica se ainda há registros para ler de cada fita
+            int* contadores = (int*)malloc(f * sizeof(int));      //Conta quantos elementos de um bloco ja foram lidos
 
-            for (int d = 0; d < f; d++)
-            {
-                menores[d].nota = 0;
+            for (int d = 0; d < f; d++){
+                // menores[d].nota = 0;
                 ativos[d] = 1;
                 contadores[d] = 0;
             }
             
             Registro menor; // = { 0 };
-            menor.nota = 0;
+            menor.nota = FLT_MAX;
             int fitaMenor = -1;
             // fim = 1;
 
@@ -250,44 +251,57 @@ void intercalacaoBalanceada(int numBlocos){
             for (j = 0; j < f; j++) {
                 if (fread(&R, sizeof(Registro), 1, fitasIn[j]) == 1) {
                     menores[j] = R;
-                    contadores[j]++;
+                    (contadores[j])++;
                 } else {
                     ativos[j] = 0;  // Marca que não há mais registros nesta fita
                 }
             }
 
+            while(somaAtivos(ativos) > 0){
+                // printf("%d \n", somaAtivos(ativos));
 
-            while(somaAtivos(ativos) != 0){
+                for(int banana = 0; banana < f; banana++)
+                    printf("%d ", contadores[banana]);
+                printf("\n");
 
                 // Determina o menor registro entre as fitas ativas
                 for (j = 0; j < f; j++) {
-                    if (ativos[j] && (fitaMenor == -1 || menores[j].nota < menor.nota)) {
+                    printf("menores vetor %f - menor atual %f\n", menores[j].nota, menor.nota);
+                    if ((ativos[j] == 1) && (fitaMenor == -1 || menores[j].nota < menor.nota)) {
                         menor = menores[j];
                         fitaMenor = j;
-                        //fim = 0;
                     }
                 }
+                printf("fita menor %d\n", fitaMenor);
 
                 //if (fim) break;  // Sai se não houver mais números a serem processados
             
                 // Grava o menor número na fita de saída
-                if((fwrite(&menor, sizeof(Registro), 1, fitasOut[i - 1])) != 1){
+                // printf("Valor de i - 1: %d\n", i - 1);
+                if((fwrite(&menor, sizeof(Registro), 1, fitasOut[i - 1])) != 1)
                     printf("erro em inserir em OUT!!!\n");
-                }
+  
 
                 // Lê o próximo número da fita de onde foi extraído o menor
-                if (fread(&R, sizeof(Registro), 1, fitasIn[fitaMenor]) == 1) {
+                if (ativos[fitaMenor] == 1) {
 
-                    // d++;
-                    // printf("%d ", d);
-                    contadores[fitaMenor]++;
+                    if(fread(&R, sizeof(Registro), 1, fitasIn[fitaMenor]) < 1){
+                        ativos[fitaMenor] = 0;
+                        menores[fitaMenor].nota = FLT_MAX;
+                        break;
+                    }
+
+                    (contadores[fitaMenor])++;
 
                     //garante que nao sera lido depois de chegar no limite do bloco
-                    if(contadores[fitaMenor] >= limiteBloco) ativos[fitaMenor] = 0;
+                    if(contadores[fitaMenor] >= limiteBloco) {
+                        ativos[fitaMenor] = 0;
+                        menores[fitaMenor].nota = FLT_MAX;  // Marca como fim daquela fita
+                    } 
                     menores[fitaMenor] = R;
                 } else {
-                    ativos[fitaMenor] = 0;
-                    menores[fitaMenor].nota = INT_MAX;  // Marca como fim daquela fita
+                    //ativos[fitaMenor] = 0;
+                    menores[fitaMenor].nota = FLT_MAX;  // Marca como fim daquela fita
                 }
             }
 
@@ -302,7 +316,7 @@ void intercalacaoBalanceada(int numBlocos){
             fclose(fitasOut[j]);
         }
 
-        if(i % 2 != 0){
+        if(trocaFita){
 
             // Abre fitas de entrada para leitura em binário
             for (j = 0; j < f; j++) {
@@ -342,10 +356,12 @@ void intercalacaoBalanceada(int numBlocos){
                 }
             }
         } 
+        trocaFita = !trocaFita;
     } 
 
     fclose(fitaFinal);
 }
+
 
 int main(int argc, char *argv[]){
 
@@ -356,7 +372,7 @@ int main(int argc, char *argv[]){
     if((output = fopen("outputIntBal.txt", "w")) == NULL)
         exit(1);
 
-    if((arqBin = fopen("desordenado400.bin", "rb")) == NULL)
+    if((arqBin = fopen("desordenadoTotal.bin", "rb")) == NULL)
         exit(1);
 
     criaRuns(arqBin, &numBlocos);
@@ -385,6 +401,8 @@ int main(int argc, char *argv[]){
 
     fclose(temp);  
     fclose(output);  
+
+    return 0;
 }
 
 
