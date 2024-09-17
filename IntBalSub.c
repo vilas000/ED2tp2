@@ -132,7 +132,7 @@ void GeraFitas(FILE **fitas, RegistroSub *interna, Registro pulaBloco)
             {
                 fwrite(&pulaBloco, sizeof(Registro), 1, fitas[i]);
                 verifica = false;
-                printf("cabou tudo karai\n");
+                printf("acabou\n");
                 continue;
             }
         }
@@ -147,8 +147,18 @@ void GeraFitas(FILE **fitas, RegistroSub *interna, Registro pulaBloco)
 
 void heap(RegistroSub *interna, float *menorNota, int *posMenorNota)
 {
-    *menorNota = interna[0].registro.nota;
+    *menorNota = -2;
     *posMenorNota = 0;
+    for(int i = 0; i < tamMemoria; i++){
+        if(interna[i].registro.nota >=0){
+            *menorNota = interna[i].registro.nota;
+            *posMenorNota = i;
+            break;
+        }
+    }
+    if (*menorNota == -2){
+        return;
+    }
     for (int i = 0; i < tamMemoria; i++)
     {
         if (interna[i].registro.nota < *menorNota && interna[i].registro.nota >= 0)
@@ -164,10 +174,12 @@ void heap(RegistroSub *interna, float *menorNota, int *posMenorNota)
 void Intercala(FILE **fitas, RegistroSub *interna, Registro pulaBloco)
 {
     bool chave = 0;
-    // bool verificafim[41] = {false};
     int contaBlocos[41] = {0};
     int posFitaIntercalada;
-
+    char nome[11] = "fita";
+    char final[5] = ".bin";
+    char index[3];
+    char temp[11];
     while (1)
     {
         // inicializacao de variaveis para auxiliar no decorrer co codigo
@@ -179,7 +191,26 @@ void Intercala(FILE **fitas, RegistroSub *interna, Registro pulaBloco)
 
         // a chave indica se a leitura sera feita nas fitas de 1 a 20 ou das fitas 21 a 40
         if (chave == 0)
-        {
+        {   
+            for (int i = 21; i <= f2; i++) { // Comecando de 1
+                fclose(fitas[i]);
+                strcpy(temp, nome);
+                sprintf(index, "%d", i);
+                strcat(temp, index);
+                strcat(temp, final);
+                fitas[i] = fopen(temp, "w+b");
+                if (fitas[i] == NULL)
+                {
+                    printf("Erro ao abrir a fita %d", i);
+                    free(interna);
+                    for (int j = 1; j < i; j++)
+                    {
+                        fclose(fitas[j]);
+                    }
+                    free(fitas);
+                    exit(1);
+                }
+            }
             // inicializando o indice das fitas de saida
             int saida = 21;
             // lendo o primeiro item de cada uma das fitas e armazenando na memoria principal
@@ -232,6 +263,9 @@ void Intercala(FILE **fitas, RegistroSub *interna, Registro pulaBloco)
 
                     // A variavel e saida e usada para mudar a fita de saida
                     saida++;
+                    if(saida > f2){
+                        saida = f+1;
+                    }
                     // leitura dos proximos itens e amazenando na memoria
                     for (int i = 0; i < tamMemoria; i++)
                     {
@@ -263,19 +297,21 @@ void Intercala(FILE **fitas, RegistroSub *interna, Registro pulaBloco)
                 if (contaFimFita == tamMemoria)
                 {
                     printf("debug: saiu do while 1 de dentro\n");
+                    chave = 1;
                     break;
                 }
             }
 
             contaFimFita = 0;
             // verificando se temos somente uma fita de saida com apenas 1 bloco
-            for (int i = 1; i <= f; i++)
+            for (int i = 21; i <= f2; i++)
             {
                 // verifica se chegamos no final da fita
                 if (feof(fitas[i]))
                 {
                     // Incrementa quando chegamos no final da fita
                     contaFimFita++;
+                    printf("[%d]", contaFimFita);
                 }
                 else
                     posFitaIntercalada = i;
@@ -286,11 +322,30 @@ void Intercala(FILE **fitas, RegistroSub *interna, Registro pulaBloco)
                 printf("debug: saiu do while de fora\n");
                 break;
             }
-            else if(contaFimFita == f)
-                break;
+            //else if(contaFimFita == f)
+            //    break;
         }
         else
         {
+            for (int i = 1; i <= f; i++) { // Comecando de 1
+                fclose(fitas[i]);
+                strcpy(temp, nome);
+                sprintf(index, "%d", i);
+                strcat(temp, index);
+                strcat(temp, final);
+                fitas[i] = fopen(temp, "w+b");
+                if (fitas[i] == NULL)
+                {
+                    printf("Erro ao abrir a fita %d", i);
+                    free(interna);
+                    for (int j = 1; j < i; j++)
+                    {
+                        fclose(fitas[j]);
+                    }
+                    free(fitas);
+                    exit(1);
+                }
+            }
             // inicializando o indice das fitas de saida
             int saida = 1;
 
@@ -331,6 +386,9 @@ void Intercala(FILE **fitas, RegistroSub *interna, Registro pulaBloco)
 
                     // A variavel e saida e usada para mudar a fita de saida
                     saida++;
+                    if(saida > f){
+                        saida = 1;
+                    }
 
                     for (int i = 0; i < tamMemoria; i++)
                     {
@@ -351,6 +409,7 @@ void Intercala(FILE **fitas, RegistroSub *interna, Registro pulaBloco)
                 if (contaFimFita == tamMemoria)
                 {
                     printf("debug: saiu do while 2 de dentro\n");
+                    chave = 0;
                     break;
                 }
 
@@ -374,10 +433,6 @@ void Intercala(FILE **fitas, RegistroSub *interna, Registro pulaBloco)
                     break;
             }
         }
-
-        /*if(contaFimFita == 19 && contaFimBloco == 1){
-            break;
-        }*/
     }
 }
 
@@ -448,7 +503,6 @@ int main(int argc, char *argv[])
         }
         
     }
-
 
     // Fecha todas as fitas e libera memoria
     for (int j = 1; j <= f2; j++)
