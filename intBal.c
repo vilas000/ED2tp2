@@ -7,7 +7,7 @@
 #include <float.h>
 #include "intBal.h"
 
-#define reg 410
+#define reg 471705
 
 //nome fitas: fita1 fita2 ...
 
@@ -155,10 +155,10 @@ void criaRuns(FILE* arqBin, int *numBlocos){
             //escrevendo bloco ordenado em fita[i]
             for(i = 0; i < tamMemoria; i++)
                 fwrite(&interna[i], sizeof(Registro), 1, fitas[contFita % f]);
-            printf("FITA %d: ", contFita);
-            for(int i = 0; i < tamMemoria; i++)
-                printf("%.2f ", interna[i].nota);
-            printf("\n\n");
+            // printf("FITA %d: ", contFita);
+            // for(int i = 0; i < tamMemoria; i++)
+            //     printf("%.2f ", interna[i].nota);
+            // printf("\n\n");
 
             contRegistros = 0;
             contFita++;
@@ -172,9 +172,9 @@ void criaRuns(FILE* arqBin, int *numBlocos){
         for (i = 0; i < contRegistros; i++) {
             fwrite(&interna[i], sizeof(Registro), 1, fitas[contFita % f]);
         }
-            for(int i = 0; i < contRegistros; i++)
-                printf("%.2f ", interna[i].nota);
-            printf("\n\n");
+            // for(int i = 0; i < contRegistros; i++)
+            //     printf("%.2f ", interna[i].nota);
+            // printf("\n\n");
         
         contFita++;
     }
@@ -221,6 +221,7 @@ void intercalacaoBalanceada(int numBlocos){
         printf("Erro ao abrir o arquivo binario final.\n");
         for (i = 0; i < f; i++) {
             fclose(fitasIn[i]);
+            fclose(fitasOut[i]);
         }
         return;
     }
@@ -233,6 +234,12 @@ void intercalacaoBalanceada(int numBlocos){
     bool trocaFita = true;
 
     printf("chega ate a funcao que eu quero");
+    // Registro* menores = (Registro*)calloc(f, sizeof(Registro));
+    // int* ativos = (int*)malloc(f * sizeof(int));          // Indica se ainda há registros para ler de cada fita
+    // int* contadores = (int*)malloc(f * sizeof(int));      //Conta quantos elementos de um bloco ja foram lidos
+    Registro menores[f] = { 0 };
+    int ativos[f];
+    int contadores[f];
 
     while(numBlocos > 1){
 
@@ -243,9 +250,6 @@ void intercalacaoBalanceada(int numBlocos){
         for(i = 1; i <= colunasTotais; i++){
 
             // Vetor para armazenar o próximo elemento de cada fita
-            Registro* menores = (Registro*)calloc(f, sizeof(Registro));
-            int* ativos = (int*)malloc(f * sizeof(int));          // Indica se ainda há registros para ler de cada fita
-            int* contadores = (int*)malloc(f * sizeof(int));      //Conta quantos elementos de um bloco ja foram lidos
 
             for (int d = 0; d < f; d++){
                 // menores[d].nota = 0;
@@ -293,14 +297,15 @@ void intercalacaoBalanceada(int numBlocos){
                 //if (fim) break;  // Sai se não houver mais números a serem processados
             
                 // Grava o menor número na fita de saída
-                if((fwrite(&menor, sizeof(Registro), 1, fitasOut[i - 1])) != 1)
+                if((fwrite(&menor, sizeof(Registro), 1, fitasOut[(i - 1) % f])) != 1)
                     printf("erro em inserir em OUT!!!\n");
   
 
                 // Lê o próximo número da fita de onde foi extraído o menor
                 if (ativos[fitaMenor] == 1) {
 
-                    if(fread(&R, sizeof(Registro), 1, fitasIn[fitaMenor]) < 1){
+                    if(contadores[fitaMenor] < limiteBloco && fread(&R, sizeof(Registro), 1, fitasIn[fitaMenor]) < 1){
+                    // if(fread(&R, sizeof(Registro), 1, fitasIn[fitaMenor]) < 1){
                         ativos[fitaMenor] = 0;
                         menores[fitaMenor].nota = FLT_MAX;
                     }
@@ -321,7 +326,7 @@ void intercalacaoBalanceada(int numBlocos){
                 }
             }
 
-            printf("teste importante");
+            // printf("teste importante");
 
         }
 
@@ -374,7 +379,7 @@ void intercalacaoBalanceada(int numBlocos){
         } 
         trocaFita = !trocaFita;
     } 
-
+    // free(menores); free(ativos); free(contadores);
     fclose(fitaFinal);
 }
 
