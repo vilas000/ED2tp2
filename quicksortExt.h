@@ -11,7 +11,7 @@ typedef struct{
     char curso[31];
 }Registro;
 
-#define QUANT_REGISTROS QUANT_TOTAL
+#define QUANT_REGISTROS 100000
 #define QUANT_TOTAL 471705
 #define TAM_AREA 220
 

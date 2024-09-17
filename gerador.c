@@ -8,6 +8,7 @@ typedef struct{
     char estado[3];
     char cidade[51];
     char curso[31];
+    int fita;
 }Registro;
 
 typedef Registro* tipoApontador;

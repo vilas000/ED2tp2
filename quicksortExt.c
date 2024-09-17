@@ -101,6 +101,7 @@ void particao(FILE **arqLinf, FILE **arqEinf, FILE **arqLESup,
     
     int lSup = dir, eSup = dir, lInf = esq, eInf = esq,
         numArea = 0, limInf = INT_MIN, limSup = INT_MAX;
+    // float limInf = -1.0, limSup = 101.0;
     bool ondeLer = true; 
     Registro ultimoLido, R;
     fseek(*arqLinf, (lInf - 1) * sizeof(Registro), SEEK_SET);
@@ -165,16 +166,16 @@ int main(int argc, char *argv[]){
     if((output = fopen("outputTotal.txt", "w")) == NULL)
         exit(1);
 
-    if((arqLInf = fopen("desordenadoTotal.bin", "r+b")) == NULL){
+    if((arqLInf = fopen("desordenadoCemMil.bin", "r+b")) == NULL){
         fclose(output);
         exit(1);
     }
         
-    if((arqEinf = fopen("desordenadoTotal.bin", "r+b")) == NULL){
+    if((arqEinf = fopen("desordenadoCemMil.bin", "r+b")) == NULL){
         fclose(arqLInf);
         exit(1);}
 
-    if((arqLESup = fopen("desordenadoTotal.bin", "r+b")) == NULL){
+    if((arqLESup = fopen("desordenadoCemMil.bin", "r+b")) == NULL){
         fclose(arqLInf);
         fclose(arqEinf);
         exit(1);}
@@ -196,7 +197,6 @@ int main(int argc, char *argv[]){
                 R.curso);
         i++;
     }
-
 
     fclose(output);
     fclose(arqLInf);
