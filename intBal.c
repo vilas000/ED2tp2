@@ -7,6 +7,8 @@
 #include <float.h>
 #include "intBal.h"
 
+#define reg 410
+
 //nome fitas: fita1 fita2 ...
 
 int somaAtivos(int* ativos){
@@ -140,7 +142,7 @@ void criaRuns(FILE* arqBin, int *numBlocos){
 
     //FITAS DE ENTRADA
     //gerando os blocos ordenados dentro das fitas de entrada
-    for(int j = 0; j < 400; j++){
+    for(int j = 0; j < reg; j++){
 
         fread(&R, sizeof(Registro), 1, arqBin);
 
@@ -153,6 +155,10 @@ void criaRuns(FILE* arqBin, int *numBlocos){
             //escrevendo bloco ordenado em fita[i]
             for(i = 0; i < tamMemoria; i++)
                 fwrite(&interna[i], sizeof(Registro), 1, fitas[contFita % f]);
+            printf("FITA %d: ", contFita);
+            for(int i = 0; i < tamMemoria; i++)
+                printf("%.2f ", interna[i].nota);
+            printf("\n\n");
 
             contRegistros = 0;
             contFita++;
@@ -166,6 +172,10 @@ void criaRuns(FILE* arqBin, int *numBlocos){
         for (i = 0; i < contRegistros; i++) {
             fwrite(&interna[i], sizeof(Registro), 1, fitas[contFita % f]);
         }
+            for(int i = 0; i < contRegistros; i++)
+                printf("%.2f ", interna[i].nota);
+            printf("\n\n");
+        
         contFita++;
     }
 
@@ -217,8 +227,8 @@ void intercalacaoBalanceada(int numBlocos){
 
     //NESSE PONTO O VETOR INTERNO ESTA COM O MENOR ELEMENTO DE CADA RUN DOS PRIMEIROS BLOCOS HAHAHAHAHAHHAHAHAHAHAHAHA
 
-    int colunasTotais = ceil((float)numBlocos / f);
     int limiteBloco = f;
+    int colunasTotais;
     int j;
     bool trocaFita = true;
 
@@ -226,6 +236,7 @@ void intercalacaoBalanceada(int numBlocos){
 
     while(numBlocos > 1){
 
+        colunasTotais = ceil((float)numBlocos / f);
         printf("\nNum blocos: %d\n", numBlocos);
 
         // Intercala runs das fitas de entrada nas fitas de saída
@@ -243,7 +254,7 @@ void intercalacaoBalanceada(int numBlocos){
             }
             
             Registro menor; // = { 0 };
-            menor.nota = FLT_MAX;
+            // menor.nota = FLT_MAX;
             int fitaMenor = -1;
             // fim = 1;
 
@@ -252,32 +263,36 @@ void intercalacaoBalanceada(int numBlocos){
                 if (fread(&R, sizeof(Registro), 1, fitasIn[j]) == 1) {
                     menores[j] = R;
                     (contadores[j])++;
+                    printf("%.2f ", menores[j].nota);
                 } else {
                     ativos[j] = 0;  // Marca que não há mais registros nesta fita
                 }
             }
+            printf("\n");
 
             while(somaAtivos(ativos) > 0){
+                menor.nota = FLT_MAX;
+
+
                 // printf("%d \n", somaAtivos(ativos));
 
-                for(int banana = 0; banana < f; banana++)
-                    printf("%d ", contadores[banana]);
-                printf("\n");
+                // for(int banana = 0; banana < f; banana++)
+                //     printf("%d ", contadores[banana]);
+                // printf("\n");
 
                 // Determina o menor registro entre as fitas ativas
                 for (j = 0; j < f; j++) {
-                    printf("menores vetor %f - menor atual %f\n", menores[j].nota, menor.nota);
+                    // printf("menores vetor %f - menor atual %f\n", menores[j].nota, menor.nota);
                     if ((ativos[j] == 1) && (fitaMenor == -1 || menores[j].nota < menor.nota)) {
                         menor = menores[j];
                         fitaMenor = j;
                     }
                 }
-                printf("fita menor %d\n", fitaMenor);
+                // printf("fita menor %d\n", fitaMenor);
 
                 //if (fim) break;  // Sai se não houver mais números a serem processados
             
                 // Grava o menor número na fita de saída
-                // printf("Valor de i - 1: %d\n", i - 1);
                 if((fwrite(&menor, sizeof(Registro), 1, fitasOut[i - 1])) != 1)
                     printf("erro em inserir em OUT!!!\n");
   
@@ -288,16 +303,17 @@ void intercalacaoBalanceada(int numBlocos){
                     if(fread(&R, sizeof(Registro), 1, fitasIn[fitaMenor]) < 1){
                         ativos[fitaMenor] = 0;
                         menores[fitaMenor].nota = FLT_MAX;
-                        break;
                     }
+                    // printf("TESTE IMPORTANTE IMPORTANTE: %f\n", R.nota);
 
                     (contadores[fitaMenor])++;
 
                     //garante que nao sera lido depois de chegar no limite do bloco
-                    if(contadores[fitaMenor] >= limiteBloco) {
+                    if(contadores[fitaMenor] > limiteBloco) {
                         ativos[fitaMenor] = 0;
                         menores[fitaMenor].nota = FLT_MAX;  // Marca como fim daquela fita
                     } 
+
                     menores[fitaMenor] = R;
                 } else {
                     //ativos[fitaMenor] = 0;
@@ -309,8 +325,8 @@ void intercalacaoBalanceada(int numBlocos){
 
         }
 
-        limiteBloco *= f;
-        numBlocos = ceil(numBlocos / (float)f);
+        limiteBloco = limiteBloco * f;
+        numBlocos = ceil((float)numBlocos / f);
         for (int j = 0; j < f; j++) {
             fclose(fitasIn[j]);
             fclose(fitasOut[j]);
@@ -384,7 +400,7 @@ int main(int argc, char *argv[]){
     FILE* temp;
     Registro R;
 
-    if((temp = fopen("arquivoBinarioFinal.bin", "rb")) == NULL)
+    if((temp = fopen("fita_in0.bin", "rb")) == NULL)
         exit(1);
 
     i = 1;
